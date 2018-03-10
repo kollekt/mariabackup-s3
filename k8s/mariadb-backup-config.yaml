@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mariadb-backup-config
+data:
+  backup.cron: |
+    3 * * * * /usr/local/bin/backup create --full
+    */5 * * * * /usr/local/bin/backup create
+    * * * * * /usr/local/bin/backup prune --retention "7:days,4:weeks,12:months,10:years"

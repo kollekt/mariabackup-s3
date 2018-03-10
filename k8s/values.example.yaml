@@ -1,0 +1,38 @@
+primary:
+  rootPassword: "root"
+  extraVolumes:
+    - name: backup-config
+      configMap:
+        name: mariadb-backup-config
+        defaultMode: 420
+  initContainers:
+    - name: init
+      image: kollekt/mariabackup:10.6
+      command: ["ash", "/usr/app/scripts/restore-check.sh"]
+      volumeMounts:
+        - mountPath: /bitnami/mariadb
+          name: data
+  sidecars:
+    - name: backup
+      image: kollekt/mariabackup:10.6
+      volumeMounts:
+        - mountPath: /bitnami/mariadb
+          name: data
+        - mountPath: /usr/app/
+          name: backup-config
+      env:
+        - name: MYSQL_ROOT_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mariadb
+              key: mariadb-root-password
+        - name: MYSQL_DATA_DIR
+          value: /bitnami/mariadb/data
+        - name: S3_KEY
+          value: <AWS S3 key>
+        - name: S3_SECRET
+          value: <AWS S3 SECRET>
+        - name: S3_BUCKET
+          value: prod
+        - name: S3_PATH
+          value: test
