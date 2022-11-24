@@ -13,6 +13,7 @@ const backupInProgress = () => {
 
 program
   .command('create')
+  .description('Create a new backup')
   .option('-p, --path <path>', 'Storage path')
   .option('-f, --full', 'Full backup')
   .action(async (cmd) => {
@@ -33,7 +34,7 @@ program
 
 program
   .command('restore <dateTime>')
-  .description('Restore backup')
+  .description('Restore a backup')
   .option('-p, --path <path>', 'Storage path')
   .action(async (time, cmd) => {
     await ps.lock().catch(backupInProgress);
@@ -49,7 +50,7 @@ program
 
 program
   .command('prune')
-  .description('Removes old incremental backups')
+  .description('Rotate backups')
   .option('-p, --path <path>', 'Storage path')
   .option('-r, --retention <retention>', 'default "7:days,4:weeks,12:months,5:years"')
   .option('--dry-run', 'simulate deletion')
