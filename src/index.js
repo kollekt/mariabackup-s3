@@ -2,7 +2,7 @@
 require('dotenv').config();
 const program = require('commander');
 const moment = require('moment');
-const mariaBackup = require('./MariaBackup');
+const mariaBackup = require('./backup');
 const hooks = require('./hooks');
 const ps = require('./Process');
 
