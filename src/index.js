@@ -28,7 +28,7 @@ program
         : await mariaBackup.createIncrementalBackup(storagePath, time);
       hooks.backupSuccess(storagePath);
     } catch (e) {
-      hooks.backupFailed(e.message)
+      hooks.backupFailed(storagePath, e.message)
     }
   });
 
