@@ -4,6 +4,13 @@ metadata:
   name: mariadb-backup-config
 data:
   backup.cron: |
-    3 * * * * /usr/local/bin/backup create --full
+    */15 * * * * /usr/local/bin/backup create --full
     */5 * * * * /usr/local/bin/backup create
     * * * * * /usr/local/bin/backup prune --retention "7:days,4:weeks,12:months,10:years"
+  backup-success: |
+    #!/bin/sh
+    echo "Backup success! storagePath: ${1}"
+    
+    # pings healthchecks.io after every successful backup. Can be used
+    # to get notifications if backup's stop happening. 
+    # curl https://hc-ping.com/###############################

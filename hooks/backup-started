@@ -1,0 +1,4 @@
+#!/bin/sh
+# Add custom you custom logic here. Shell scripts and NodeJS (use #!/usr/bin/env node) are supported.
+
+echo "Backup started. storagePath: ${1}"

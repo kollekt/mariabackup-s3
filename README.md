@@ -9,6 +9,7 @@ This package is developed to run as a sidecar for Bitnami's mariaDB.
 * Restore command
 * List backups
 * Duplicate backup process prevention
+* Custom hooks
 
 ## Backup strategy
 ### Defaults
@@ -73,7 +74,7 @@ primary:
     - name: backup-config
       configMap:
         name: mariadb-backup-config
-        defaultMode: 420
+        defaultMode: 0744
   initContainers:
     - name: init
       image: kollekt/mariabackup:10.6
@@ -87,8 +88,12 @@ primary:
       volumeMounts:
         - mountPath: /bitnami/mariadb
           name: data
-        - mountPath: /usr/app/
+        - mountPath: /usr/app/backup.cron
           name: backup-config
+          subPath: backup.cron
+        - mountPath: /usr/app/hooks/backup-success
+          name: backup-config
+          subPath: backup-success
       env:
         - name: MYSQL_ROOT_PASSWORD
           valueFrom:
@@ -113,6 +118,21 @@ All that remains is to deploy the database
 helm repo add bitname https://charts.bitnami.com/bitnami
 helm repo update
 helm install mariadb bitnami/mariadb -f k8s/values.yaml
+```
+
+## Custom hooks
+There a 4 script that are called during the backup process:
+- init (on container start)
+- backup-started
+- backup-success
+- backup-failed
+
+Customize through the`backup-config` configmap:
+```shell
+#!/bin/sh
+# pings healthchecks.io after every successful backup. Can be used
+# to get notifications if backup's stop happening. 
+curl https://hc-ping.com/###############################
 ```
 
 

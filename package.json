@@ -15,7 +15,6 @@
     "lockfile": "^1.0.3",
     "moment": "^2.29.4",
     "progress": "^2.0.0",
-    "pushbullet": "^2.1.0",
     "s3": "github:limoragni/node-s3-client",
     "signal-exit": "^3.0.2"
   }

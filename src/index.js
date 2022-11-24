@@ -3,11 +3,11 @@ require('dotenv').config();
 const program = require('commander');
 const moment = require('moment');
 const mariaBackup = require('./MariaBackup');
+const hooks = require('./hooks');
 const ps = require('./Process');
-const log = require('./Log');
 
 const backupInProgress = () => {
-  log('backup in progress. Please try again later');
+  console.log('backup in progress. Please try again later');
   process.exit();
 };
 
@@ -22,13 +22,13 @@ program
       await ps.lock().catch(backupInProgress);
       const time = moment();
 
+      hooks.backupStarted(storagePath);
       (await mariaBackup.isFullBackupRequired(storagePath) || cmd.full)
         ? await mariaBackup.createFullBackup(storagePath, time)
         : await mariaBackup.createIncrementalBackup(storagePath, time);
-
-      console.log('Completed backup');
+      hooks.backupSuccess(storagePath);
     } catch (e) {
-      log(`failed backing up ${storagePath}: ${e.message}`);
+      hooks.backupFailed(e.message)
     }
   });
 
@@ -60,7 +60,7 @@ program
       await mariaBackup.prune(storagePath, cmd.retention || "7:days,4:weeks,12:months,5:years", cmd.dryRun);
       console.log('Done pruning');
     } catch (e) {
-      log(`failed removing all old backups for ${storagePath}: ${e.message}`);
+      console.error(`failed removing all old backups for ${storagePath}: ${e.message}`);
     }
   });
 
@@ -78,7 +78,7 @@ program
       const before = cmd.before ? moment(cmd.before, 'YYYY-MM-DD HH:mm:ss') : null;
       await mariaBackup.listBackups(storagePath, after, before, cmd.fullOnly);
     } catch (e) {
-      log(`failed listing old backups for ${storagePath}: ${e.message}`);
+      console.error(`failed listing old backups for ${storagePath}: ${e.message}`);
     }
   });
 
