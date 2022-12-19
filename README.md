@@ -23,7 +23,7 @@ This package is developed to run as a sidecar for Bitnami's mariaDB.
  - If no previous backup exists, the first backup made will always be a full backup
 
 ### Customize strategy
-To customize the backup strategy `backup.cron` can be modified and applied as configmap. 
+To customize the backup and prune strategy `backup.cron` can be modified and applied as configmap. 
 
 The `--retention` argument accepts a combination of comma seperated `days`, `weeks`, `monthys` and `years`.
 
@@ -79,6 +79,9 @@ primary:
     - name: init
       image: kollekt/mariabackup:10.6
       command: ["ash", "/usr/app/scripts/restore-check.sh"]
+      env:
+         - name: MYSQL_DATA_DIR
+           value: /bitnami/mariadb/data
       volumeMounts:
         - mountPath: /bitnami/mariadb
           name: data
@@ -88,7 +91,7 @@ primary:
       volumeMounts:
         - mountPath: /bitnami/mariadb
           name: data
-        - mountPath: /usr/app/backup.cron
+        - mountPath: /etc/crontabs/root
           name: backup-config
           subPath: backup.cron
         - mountPath: /usr/app/hooks/backup-success
@@ -121,7 +124,7 @@ helm install mariadb bitnami/mariadb -f k8s/values.yaml
 ```
 
 ## Custom hooks
-There a 4 script that are called during the backup process:
+There are 4 scripts that are called during the backup process:
 - init (on container start)
 - backup-started
 - backup-success
