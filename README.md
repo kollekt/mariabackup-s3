@@ -107,12 +107,14 @@ primary:
           value: /bitnami/mariadb/data
         - name: S3_KEY
           value: <AWS S3 key>
+        - name: S3_REGION
+          value: eu-west-1
         - name: S3_SECRET
           value: <AWS S3 SECRET>
         - name: S3_BUCKET
           value: prod
         - name: S3_PATH
-          value: test
+          value: production/foo-service
 ```
 
 All that remains is to deploy the database
