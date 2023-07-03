@@ -12,7 +12,7 @@ const tempRestoreDir = '/tmp/restore';
 const restoreDir = `${mysqlDataDir}/restore`;
 const backupDir = `${mysqlDataDir}/backup`;
 
-const backupFileNameFormat = 'YYYY-MM-DD HH:mm:ss';
+const backupFileNameFormat = 'YYYY-MM-DDTHH:mm:ss';
 
 const isFullBackupRequired = async () => {
   return !fs.existsSync(backupDir);
