@@ -18,6 +18,16 @@ const isFullBackupRequired = async () => {
   return !fs.existsSync(backupDir);
 };
 
+const parseBackupFilePath = filepath => {
+  const pathParts = filepath.split('/');
+  const dateTimeInFilename = pathParts[pathParts.length-2].replace('-full', '');
+
+  const backupMoment = moment(dateTimeInFilename, backupFileNameFormat);
+  const isFullBackup = filepath.indexOf('-full') !== -1;
+
+  return {backupMoment, isFullBackup};
+}
+
 const createFullBackup = (storagePath, time) => {
   console.log('full backup');
   const backupTimeFormat = time.format(backupFileNameFormat);
@@ -64,8 +74,8 @@ const determineCorrectBackupFiles = async (storagePath, time) => {
   const s3DirPath = `${storagePath}/`;
 
   const backupsBeforeTime = filepath => {
-    const dateTimeInFilename = filepath.split('/')[1].replace('-full', '');
-    return moment(dateTimeInFilename, backupFileNameFormat).isSameOrBefore(time);
+    const {backupMoment }  = parseBackupFilePath(filepath);
+    return moment(backupMoment, backupFileNameFormat).isSameOrBefore(time);
   };
 
   const toLatestFullBackup = (results, filepath) => {
@@ -114,16 +124,15 @@ const prune = async (storagePath, retentionOptions, dryRun) => {
   // Picks all incremental backups made before the most recent days old full backup
   const incrementsToDelete = [];
   filePaths.some(filepath => {
-    const isFullBackup = filepath.includes('-full');
-    const backupMoment = moment(filepath.split('/')[1].replace('-full', ''), backupFileNameFormat);
-
+    const {backupMoment, isFullBackup}  = parseBackupFilePath(filepath);
     if (isFullBackup && backupMoment.isAfter(xDaysBack)) return true;
     if (!isFullBackup) incrementsToDelete.push(filepath);
   });
 
   const filePathMap = filePaths.reduce((r, filepath) => {
-    if (!filepath.includes('-full')) return r;
-    r[filepath] = moment(filepath.split('/')[1].replace('-full', ''), backupFileNameFormat);
+    const {backupMoment, isFullBackup} = parseBackupFilePath(filepath);
+    if (!isFullBackup) return r;
+    r[filepath] = backupMoment;
     return r;
   }, {});
 
@@ -159,9 +168,9 @@ const listBackups = async (storagePath, after, before, fullOnly) => {
   const s3DirPath = `${storagePath}/`;
   const filePaths = (await s3.list(s3DirPath)).sort(); // Oldest first
   const mapped = filePaths.reduce((result, filepath) => {
-    const isFullBackup = filepath.includes('-full');
+    const {backupMoment, isFullBackup}  = parseBackupFilePath(filepath);
+
     if (fullOnly && !isFullBackup) return result;
-    const backupMoment = moment(filepath.split('/')[1].replace('-full', ''), backupFileNameFormat);
     if (after && !backupMoment.isAfter(after)) return result;
     if (before && !backupMoment.isBefore(before)) return result;
 
